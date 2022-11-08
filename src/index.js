@@ -40,6 +40,7 @@ io.on("connection", (socket) => {
     socket.data.manager = manager;
     logger.info(`Nuevo Manager...`);
     logger.info(manager);
+    socket.join(manager.department)
   });
 
   //   Devuelve los clientes Conectados
@@ -58,6 +59,11 @@ io.on("connection", (socket) => {
       .filter((s) => s.id != socket.id)
       .map((s) => s.data.manager);
     response(managers);
+  });
+
+  socket.on("join_department", (data) => {
+    logger.info(data);
+    socket.join(data.department)
   });
 
   socket.on("disconnecting", () => {
