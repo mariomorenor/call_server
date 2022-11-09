@@ -30,46 +30,41 @@ const io = new Server(httpServer, {
 
 // Conexiones y eventos
 io.on("connection", (socket) => {
-  socket.on("nuevo_cliente", (client) => {
-    socket.data.client = client;
-    logger.info(`Nuevo Cliente...`);
-    logger.info(client);
-  });
-
-  socket.on("nuevo_manager", (manager) => {
-    socket.data.manager = manager;
-    logger.info(`Nuevo Manager...`);
-    logger.info(manager);
-    socket.join(manager.department)
-  });
-
-  //   Devuelve los clientes Conectados
-  socket.on("clientes_conectados", async (data, response) => {
-    const sockets = await io.fetchSockets();
-    const clientes = sockets
-      .filter((s) => s.id != socket.id)
-      .map((s) => s.data.client);
-    response(clientes);
-  });
 
   //   Devuelve los Managers Conectados
   socket.on("managers_conectados", async (data, response) => {
     const sockets = await io.fetchSockets();
     const managers = sockets
-      .filter((s) => s.id != socket.id)
-      .map((s) => s.data.manager);
+      .filter((s) => s.data.tipo == "manager")
+      .map(s => s.data);
     response(managers);
   });
 
-  socket.on("join_department", (data) => {
-    logger.info(data);
-    socket.join(data.department)
-  });
+  socket.on("clientes_conectados", async (data, response) => {
+    const sockets = await io.fetchSockets();
+    const clientes = sockets
+      .filter(s => s.data.tipo == "cliente")
+      .map(s => s.data)
+    response(clientes)
+  })
+
+
+  // Establece un nuevo Socket
+  socket.on("nuevo", (data) => {
+    socket.data = data
+    socket.join(data.department);
+
+    if (data.tipo == "cliente") {
+      io.to(data.department).emit("nuevo_cliente_en_espera", data)
+    }
+  })
 
   socket.on("disconnecting", () => {
     io.emit("cliente_desconectado", socket.data.client);
   });
 });
+
+
 
 httpServer.listen(3000);
 
