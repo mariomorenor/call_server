@@ -50,6 +50,7 @@ io.on("connection", (socket) => {
   // Establece un nuevo Socket
   socket.on("nuevo", (data) => {
     if (data) {
+      console.log(data);
       socket.data = data;
       socket.data.socket_id = socket.id;
       socket.join(data.department);
@@ -59,6 +60,12 @@ io.on("connection", (socket) => {
       }
     }
   });
+
+  socket.on("remover_cliente", (data) => {
+    io.in(data.socket_id).socketsLeave(data.department)
+    io.to(data.socket_id).emit("cliente_removido")
+  })
+
 
   socket.on("disconnecting", async () => {
     const sockets = await io.fetchSockets();
