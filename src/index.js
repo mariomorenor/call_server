@@ -60,6 +60,15 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("remover_cliente", (data) => {
+    io.to(data.socket_id).emit("cliente_removido");
+  });
+
+  socket.on("terminar_llamada",(client)=>{
+    console.log(client);
+    io.to(client.department).emit("socket_desconectado", client);
+  })
+
   socket.on("disconnecting", async () => {
     const sockets = await io.fetchSockets();
     const sock = sockets.find((s) => s.id == socket.id);
